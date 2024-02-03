@@ -50,7 +50,7 @@ class AdaDyGNN(nn.Module):
 		self.W_p = nn.Parameter(torch.zeros((2 * self.message_dim, self.message_dim)).to(self.device))
 		nn.init.xavier_normal_(self.W_p)
 
-		self.W_1 = nn.Parameter(torch.zeros((self.emb_dim + 2 * self.message_dim, self.emb_dim)).to(self.device))
+		self.W_1 = nn.Parameter(torch.zeros((self.emb_dim * 2, self.emb_dim)).to(self.device))
 		self.W_2 = nn.Parameter(torch.zeros((self.emb_dim, 1)).to(self.device))
 		nn.init.xavier_normal_(self.W_1)
 		nn.init.xavier_normal_(self.W_2)
@@ -108,8 +108,7 @@ class AdaDyGNN(nn.Module):
 			att = torch.softmax(h2.sum(dim=2), dim=1)
 			changed_emb = h1 * att.unsqueeze(dim=2).repeat(1, 1, self.emb_dim)
 
-			x = h.unsqueeze(dim=1).repeat(1, self.n_update_neighbors, 1)
-			x = torch.cat((neighbor_emb, x), dim=2)
+			x = torch.cat((neighbor_emb, changed_emb), dim=2)
 			x.detach_()
 			x = torch.matmul(x, self.W_1)
 			x = x.relu()
